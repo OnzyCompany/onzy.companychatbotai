@@ -1,0 +1,5 @@
+{
+  "name": "Onzy Multi-Tenant AI Assistant",
+  "description": "A robust, multi-tenant AI assistant application built with React, TypeScript, Firebase, and the Gemini API. It features an admin panel for tenant management and an embeddable AI chatbot for lead collection.",
+  "requestFramePermissions": []
+}
