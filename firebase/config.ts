@@ -1,5 +1,9 @@
-// Fix: Add vite/client type reference to resolve issues with import.meta.env
-/// <reference types="vite/client" />
+// Fix: Use process.env for environment variables to resolve type definition issues.
+declare var process: {
+  env: {
+    [key: string]: string | undefined;
+  }
+};
 
 import { initializeApp, FirebaseApp } from "firebase/app";
 import { getFirestore, Firestore } from "firebase/firestore";
@@ -8,7 +12,7 @@ let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 
 // Safely access the env object
-const env = import.meta.env;
+const env = process.env;
 
 const firebaseConfig = {
     apiKey: env ? env.VITE_FIREBASE_API_KEY : undefined,

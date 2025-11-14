@@ -1,5 +1,11 @@
-// Fix: Add vite/client type reference to resolve issues with import.meta.env
-/// <reference types="vite/client" />
+// Fix: Removed unused vite/client type reference.
+
+// Add process type definition for Vercel deployment
+declare var process: {
+  env: {
+    API_KEY: string
+  }
+};
 
 import { GoogleGenAI, Type, Content } from "@google/genai";
 import type { ChatMessage } from "../types";
@@ -8,12 +14,12 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    // Correctly access the API key from Vite's environment variables.
-    const apiKey = import.meta.env?.VITE_API_KEY;
+    // Per @google/genai SDK guidelines, API key must be read from process.env.API_KEY in production.
+    const apiKey = process.env.API_KEY;
     if (apiKey) {
       ai = new GoogleGenAI({ apiKey: apiKey });
     } else {
-      throw new Error("Gemini API key is not available. Please add VITE_API_KEY to your environment variables.");
+      throw new Error("Gemini API key is not available. Please ensure API_KEY is set in your Vercel environment variables.");
     }
   }
   return ai;
