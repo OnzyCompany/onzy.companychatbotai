@@ -1,12 +1,3 @@
-// Fix: Removed unused vite/client type reference.
-
-// Add process type definition for Vercel deployment
-declare var process: {
-  env: {
-    API_KEY: string
-  }
-};
-
 import { GoogleGenAI, Type, Content } from "@google/genai";
 import type { ChatMessage } from "../types";
 
@@ -14,7 +5,7 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    // Per @google/genai SDK guidelines, API key must be read from process.env.API_KEY in production.
+    // FIX: Per coding guidelines, use process.env.API_KEY for the Gemini API key.
     const apiKey = process.env.API_KEY;
     if (apiKey) {
       ai = new GoogleGenAI({ apiKey: apiKey });
@@ -37,13 +28,13 @@ export const streamChatResponse = async (
     systemPrompt: string,
     useProModel: boolean
 ) => {
-    const modelName = useProModel ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+    // FIX: Use 'gemini-flash-lite-latest' as per guidelines.
+    const modelName = useProModel ? 'gemini-2.5-pro' : 'gemini-flash-lite-latest';
     const config = useProModel ? { thinkingConfig: { thinkingBudget: 32768 } } : {};
     
     const contents = buildContents(history);
     
     const genAI = getAi();
-    // Fix: Call generateContentStream directly on ai.models and pass the model name, as per the SDK guidelines.
     return genAI.models.generateContentStream({
         model: modelName,
         contents,
@@ -64,7 +55,9 @@ export const extractLeadInfo = async (
   
   const properties: Record<string, { type: Type, description: string }> = {};
   collectionFields.forEach(field => {
-      properties[field] = {
+      // Sanitize field name to be a valid identifier for the schema
+      const sanitizedField = field.replace(/[^a-zA-Z0-9_]/g, '_');
+      properties[sanitizedField] = {
           type: Type.STRING,
           description: `The collected value for the field: ${field}`
       };

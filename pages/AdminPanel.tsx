@@ -7,6 +7,12 @@ import { TenantFormModal } from '../components/TenantFormModal';
 import { EmbedCodeModal } from '../components/EmbedCodeModal';
 import { OnzyLogoIcon } from '../components/Icons';
 
+const mockTenants: Tenant[] = [
+    { id: 'mock-1', name: 'Onzy AI (Preview)', themeColor: '#00ffbb', systemPrompt: 'You are a helpful AI assistant for Onzy.', whatsappNumber: '5511999998888', collectionFields: ['name', 'email'] },
+    { id: 'mock-2', name: 'Onzy Company (Preview)', themeColor: '#ff007f', systemPrompt: 'You are a helpful sales agent for Onzy Company.', whatsappNumber: '5521988887777', collectionFields: ['name', 'companyName', 'serviceType'] }
+];
+
+
 const AdminPanel: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +30,12 @@ const AdminPanel: React.FC = () => {
       const tenantsData = await getTenants();
       setTenants(tenantsData);
     } catch (err: any) {
-      setError(err.message || "Falha ao carregar tenants. Verifique a conexão com o banco de dados e a configuração.");
+      if (err.message && err.message.toLowerCase().includes("firestore is not initialized")) {
+        console.warn("Firestore not initialized, loading mock data for development preview.");
+        setTenants(mockTenants);
+      } else {
+        setError(err.message || "Falha ao carregar tenants.");
+      }
     } finally {
       setLoading(false);
     }
@@ -46,7 +57,7 @@ const AdminPanel: React.FC = () => {
       setSelectedTenant(null);
     } catch (err) {
       console.error("Failed to save tenant:", err);
-      setError("Não foi possível salvar o tenant.");
+      alert("Failed to save tenant. Check console for details. Are you in preview mode?");
     }
   };
 
@@ -57,7 +68,7 @@ const AdminPanel: React.FC = () => {
         fetchTenants();
       } catch (err) {
         console.error("Failed to delete tenant:", err);
-        setError("Não foi possível excluir o tenant.");
+        alert("Failed to delete tenant. Check console for details. Are you in preview mode?");
       }
     }
   };
@@ -111,7 +122,7 @@ const AdminPanel: React.FC = () => {
             {tenants.map((tenant) => (
               <div key={tenant.id} className="bg-onzy-dark border border-onzy-light-gray rounded-lg p-5 flex flex-col justify-between">
                 <div>
-                  <Link to={`/${tenant.id}`} className="block hover:text-onzy-neon transition-colors">
+                  <Link to={`/${tenant.id.startsWith('mock-') ? '#' : `/${tenant.id}`}`} className={`block ${tenant.id.startsWith('mock-') ? 'cursor-not-allowed' : 'hover:text-onzy-neon transition-colors'}`}>
                     <h3 className="text-xl font-bold" style={{ color: tenant.themeColor }}>{tenant.name}</h3>
                     <p className="text-sm text-onzy-text-secondary">ID: {tenant.id}</p>
                   </Link>

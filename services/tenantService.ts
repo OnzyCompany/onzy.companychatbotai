@@ -1,5 +1,5 @@
 
-import { db } from "../firebase/config";
+import { db, firebaseInitializationError } from "../firebase/config";
 import { 
     collection, 
     getDocs, 
@@ -18,7 +18,7 @@ import type { Tenant, Lead } from "../types";
 
 const checkDb = () => {
   if (!db) {
-    throw new Error("Firestore is not initialized. Please check your Firebase configuration.");
+    throw new Error(firebaseInitializationError || "Firestore is not initialized. Please check your Firebase configuration.");
   }
   return db;
 };
