@@ -1,11 +1,18 @@
 import { GoogleGenAI, Type, Content } from "@google/genai";
 import type { ChatMessage } from "../types";
 
+// Declare process to inform TypeScript about the global variable injected by the build environment.
+declare var process: {
+  env: {
+    API_KEY: string;
+  }
+};
+
 let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    // FIX: Per coding guidelines, use process.env.API_KEY for the Gemini API key.
+    // Per coding guidelines, use process.env.API_KEY for the Gemini API key.
     const apiKey = process.env.API_KEY;
     if (apiKey) {
       ai = new GoogleGenAI({ apiKey: apiKey });
@@ -28,7 +35,7 @@ export const streamChatResponse = async (
     systemPrompt: string,
     useProModel: boolean
 ) => {
-    // FIX: Use 'gemini-flash-lite-latest' as per guidelines.
+    // Use 'gemini-flash-lite-latest' as per guidelines.
     const modelName = useProModel ? 'gemini-2.5-pro' : 'gemini-flash-lite-latest';
     const config = useProModel ? { thinkingConfig: { thinkingBudget: 32768 } } : {};
     
