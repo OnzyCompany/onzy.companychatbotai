@@ -5,6 +5,7 @@ import type { ChatMessage, Tenant } from '../types';
 import { getSessionId } from '../utils/session';
 import { findOrCreateLeadBySession, updateLead } from '../services/tenantService';
 import { SendIcon, ZapIcon, BrainCircuitIcon } from './Icons';
+import { loadChatHistory, saveChatHistory } from '../utils/session';
 
 interface ChatWidgetProps {
   tenant: Tenant;
@@ -12,7 +13,16 @@ interface ChatWidgetProps {
 }
 
 export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const savedHistory = loadChatHistory(tenant.id);
+    return savedHistory || [
+      {
+        role: 'model',
+        parts: [{ text: `Olá! Eu sou o assistente virtual da ${tenant.name}. Como posso ajudar?` }],
+        timestamp: Date.now(),
+      },
+    ];
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [useProModel, setUseProModel] = useState(false); // Thinking mode
@@ -20,18 +30,13 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
   const isProcessingLead = useRef(false);
 
   useEffect(() => {
-    setMessages([
-      {
-        role: 'model',
-        parts: [{ text: `Olá! Eu sou o assistente virtual da ${tenant.name}. Como posso ajudar?` }],
-        timestamp: Date.now(),
-      },
-    ]);
-  }, [tenant]);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+  
+  useEffect(() => {
+    saveChatHistory(tenant.id, messages);
+  }, [messages, tenant.id]);
+
 
   const processLeadExtraction = useCallback(async (history: ChatMessage[]) => {
     if (isProcessingLead.current || !tenant.collectionFields || tenant.collectionFields.length === 0) {
@@ -77,12 +82,12 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
         const chunkText = chunk.text;
         modelResponse += chunkText;
         setMessages(prev => {
-          const lastMessage = prev[prev.length - 1];
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
           if (lastMessage.role === 'model') {
             lastMessage.parts[0].text = modelResponse;
-            return [...prev.slice(0, -1), lastMessage];
           }
-          return prev;
+          return newMessages;
         });
       }
 
@@ -118,7 +123,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
             </div>
           </div>
         ))}
-         {isLoading && messages[messages.length - 1].role === 'user' && (
+         {isLoading && (!messages.length || messages[messages.length - 1].role === 'user') && (
             <div className="flex justify-start mb-4">
               <div className="max-w-xs rounded-lg px-4 py-2 bg-onzy-light-gray">
                 <div className="flex items-center space-x-2">

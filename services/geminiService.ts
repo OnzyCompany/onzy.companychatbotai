@@ -1,3 +1,5 @@
+// Fix: Add vite/client type reference to resolve issues with import.meta.env
+/// <reference types="vite/client" />
 
 import { GoogleGenAI, Type, Content } from "@google/genai";
 import type { ChatMessage } from "../types";
@@ -6,10 +8,12 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    if (process.env.API_KEY) {
-      ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Correctly access the API key from Vite's environment variables.
+    const apiKey = import.meta.env?.VITE_API_KEY;
+    if (apiKey) {
+      ai = new GoogleGenAI({ apiKey: apiKey });
     } else {
-      throw new Error("Gemini API key is not available.");
+      throw new Error("Gemini API key is not available. Please add VITE_API_KEY to your environment variables.");
     }
   }
   return ai;
