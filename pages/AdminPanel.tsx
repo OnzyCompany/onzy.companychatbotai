@@ -122,7 +122,7 @@ const AdminPanel: React.FC = () => {
             {tenants.map((tenant) => (
               <div key={tenant.id} className="bg-onzy-dark border border-onzy-light-gray rounded-lg p-5 flex flex-col justify-between">
                 <div>
-                  <Link to={`/${tenant.id.startsWith('mock-') ? '#' : `/${tenant.id}`}`} className={`block ${tenant.id.startsWith('mock-') ? 'cursor-not-allowed' : 'hover:text-onzy-neon transition-colors'}`}>
+                  <Link to={`/${tenant.id}`} className="block hover:text-onzy-neon transition-colors">
                     <h3 className="text-xl font-bold" style={{ color: tenant.themeColor }}>{tenant.name}</h3>
                     <p className="text-sm text-onzy-text-secondary">ID: {tenant.id}</p>
                   </Link>

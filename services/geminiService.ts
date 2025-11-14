@@ -5,15 +5,12 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    // FIX: Use process.env.API_KEY as per the Gemini API guidelines.
-    // This also resolves the TypeScript error with import.meta.env.
-    const apiKey = process.env.API_KEY;
-    if (apiKey) {
-      ai = new GoogleGenAI({ apiKey: apiKey });
-    } else {
-      // FIX: Update error message to reflect the correct environment variable.
-      throw new Error("Gemini API key is not available. Please ensure API_KEY is set in your environment variables.");
+    // Hardcoded API Key for bolt.new/aistudio environment
+    const apiKey = "AIzaSyBvYQ9RUJHuNo7wwqZq190VD_LzxQN3NHM";
+    if (!apiKey) {
+      throw new Error("API_KEY is not configured.");
     }
+    ai = new GoogleGenAI({ apiKey });
   }
   return ai;
 };
@@ -30,7 +27,6 @@ export const streamChatResponse = async (
     systemPrompt: string,
     useProModel: boolean
 ) => {
-    // Use 'gemini-flash-lite-latest' as per guidelines.
     const modelName = useProModel ? 'gemini-2.5-pro' : 'gemini-flash-lite-latest';
     const config = useProModel ? { thinkingConfig: { thinkingBudget: 32768 } } : {};
     
