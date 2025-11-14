@@ -1,23 +1,18 @@
 import { GoogleGenAI, Type, Content } from "@google/genai";
 import type { ChatMessage } from "../types";
 
-// Declare process to inform TypeScript about the global variable injected by the build environment.
-declare var process: {
-  env: {
-    API_KEY: string;
-  }
-};
-
 let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    // Per coding guidelines, use process.env.API_KEY for the Gemini API key.
+    // FIX: Use process.env.API_KEY as per the Gemini API guidelines.
+    // This also resolves the TypeScript error with import.meta.env.
     const apiKey = process.env.API_KEY;
     if (apiKey) {
       ai = new GoogleGenAI({ apiKey: apiKey });
     } else {
-      throw new Error("Gemini API key is not available. Please ensure API_KEY is set in your Vercel environment variables.");
+      // FIX: Update error message to reflect the correct environment variable.
+      throw new Error("Gemini API key is not available. Please ensure API_KEY is set in your environment variables.");
     }
   }
   return ai;

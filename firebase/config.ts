@@ -6,8 +6,8 @@ let db: Firestore | null = null;
 
 let firebaseInitializationError: string | null = null;
 
-// Use process.env, which is populated by Vite/Vercel at build time.
-// This standardizes the approach with the Gemini SDK guidelines.
+// The Vite/Vercel standard: use import.meta.env for client-side variables.
+// FIX: Replaced import.meta.env with process.env to resolve TypeScript errors about missing type definitions for 'vite/client'.
 const firebaseConfig = {
     apiKey: process.env.VITE_FIREBASE_API_KEY,
     authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
