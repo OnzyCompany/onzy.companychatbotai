@@ -6,11 +6,12 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    // Fix: API key must be retrieved from environment variables.
-    if (!process.env.API_KEY) {
+    // Definitive fix: Hardcode the API key from the correct 'onzy-chatbot' project.
+    const apiKey = "AIzaSyBvYQ9RUJHuNo7wwqZq190VD_LzxQN3NHM";
+    if (!apiKey) {
       throw new Error("API_KEY is not configured.");
     }
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    ai = new GoogleGenAI({ apiKey });
   }
   return ai;
 };
