@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getChatResponse, extractLeadInfo } from '../services/geminiService';
 import type { ChatMessage, Tenant } from '../types';
@@ -101,9 +100,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
   };
 
   const containerClass = isEmbed
-    // FIX: Adjusted margins for a better fit inside a larger, responsive iframe.
-    // The bottom margin ensures it clears the close button properly.
-    ? 'fixed top-4 bottom-20 right-4 left-4 rounded-lg shadow-2xl flex flex-col z-40'
+    ? 'fixed inset-0 flex flex-col'
     : 'w-full h-full bg-onzy-gray rounded-lg flex flex-col';
 
   return (
@@ -136,7 +133,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
         )}
         <div ref={messagesEndRef} />
       </div>
-      <div className="p-4 border-t border-onzy-light-gray">
+      <div className={`p-4 border-t border-onzy-light-gray ${isEmbed ? 'pb-24' : ''}`}>
         {/* FIX: Conditionally hide AI model selection when embedded */}
         {!isEmbed && (
           <div className="flex items-center justify-between mb-2">
