@@ -5,7 +5,7 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    // Hardcoded API Key for bolt.new/aistudio environment
+    // Definitive, correct API Key from the 'onzy-chatbot' project.
     const apiKey = "AIzaSyBvYQ9RUJHuNo7wwqZq190VD_LzxQN3NHM";
     if (!apiKey) {
       throw new Error("API_KEY is not configured.");

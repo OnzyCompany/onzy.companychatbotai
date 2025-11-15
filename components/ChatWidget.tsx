@@ -86,11 +86,12 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
       const finalHistory = [...newHistory, finalModelMessage];
       processLeadExtraction(finalHistory);
 
-    } catch (error) {
-      console.error("Error sending message (non-streaming):", error);
+    } catch (error: any) {
+      console.error("Error from Gemini API:", error);
+      const errorMessageText = `Desculpe, ocorreu um erro. Detalhes: ${error.message || 'Falha ao contatar a IA.'}`;
       const errorMessage: ChatMessage = {
         role: 'model',
-        parts: [{ text: 'Desculpe, ocorreu um erro. Por favor, tente novamente.' }],
+        parts: [{ text: errorMessageText }],
         timestamp: Date.now(),
       };
       setMessages(prev => [...prev, errorMessage]);

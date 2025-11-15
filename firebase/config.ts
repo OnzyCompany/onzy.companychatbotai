@@ -5,7 +5,7 @@ let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let firebaseInitializationError: string | null = null;
 
-// Hardcoded configuration for bolt.new/aistudio environment
+// Definitive, correct configuration for the 'onzy-chatbot' project.
 const firebaseConfig = {
     apiKey: "AIzaSyBvYQ9RUJHuNo7wwqZq190VD_LzxQN3NHM",
     authDomain: "onzy-chatbot.firebaseapp.com",
