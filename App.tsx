@@ -1,19 +1,19 @@
-
 import React from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
+// Fix: Changed react-router-dom import to use namespace import to resolve "no exported member" error.
+import * as ReactRouterDOM from 'react-router-dom';
 import AdminPanel from './pages/AdminPanel';
 import TenantPage from './pages/TenantPage';
 import EmbedPage from './pages/EmbedPage';
 
 const App: React.FC = () => {
   return (
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<AdminPanel />} />
-        <Route path="/:tenantId" element={<TenantPage />} />
-        <Route path="/embed/:tenantId" element={<EmbedPage />} />
-      </Routes>
-    </HashRouter>
+    <ReactRouterDOM.HashRouter>
+      <ReactRouterDOM.Routes>
+        <ReactRouterDOM.Route path="/" element={<AdminPanel />} />
+        <ReactRouterDOM.Route path="/:tenantId" element={<TenantPage />} />
+        <ReactRouterDOM.Route path="/embed/:tenantId" element={<EmbedPage />} />
+      </ReactRouterDOM.Routes>
+    </ReactRouterDOM.HashRouter>
   );
 };
 
