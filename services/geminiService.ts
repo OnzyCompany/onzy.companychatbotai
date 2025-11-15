@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Content } from "@google/genai";
 import type { ChatMessage } from "../types";
 
@@ -5,12 +6,11 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    // Definitive, correct API Key from the 'onzy-chatbot' project.
-    const apiKey = "AIzaSyBvYQ9RUJHuNo7wwqZq190VD_LzxQN3NHM";
-    if (!apiKey) {
+    // Fix: API key must be retrieved from environment variables.
+    if (!process.env.API_KEY) {
       throw new Error("API_KEY is not configured.");
     }
-    ai = new GoogleGenAI({ apiKey });
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
   return ai;
 };
