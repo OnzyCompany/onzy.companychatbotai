@@ -21,12 +21,18 @@ export const EmbedCodeModal: React.FC<EmbedCodeModalProps> = ({ isOpen, onClose,
   src="${embedUrl}"
   style="
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 0;
+    right: 0;
     border: none;
     z-index: 9999;
-    width: min(90vw, 400px);
-    height: min(80vh, 700px);
+    width: 100%;
+    height: 100%;
+    max-width: 440px;
+    max-height: 700px;
+    margin: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    transition: all 0.3s ease-in-out;
   "
   allow="microphone"
 ></iframe>`;
