@@ -6,8 +6,9 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    // Definitive fix: Hardcode the API key from the correct 'onzy-chatbot' project.
-    const apiKey = "AIzaSyBvYQ9RUJHuNo7wwqZq190VD_LzxQN3NHM";
+    // FIX: Use the environment variable for the API key as is the standard and secure practice.
+    // The hardcoded key was likely a Firebase key, causing the "not configured" error.
+    const apiKey = process.env.API_KEY;
     if (!apiKey) {
       throw new Error("API_KEY is not configured.");
     }
