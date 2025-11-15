@@ -1,17 +1,19 @@
 
-
 import React, { useState, useEffect } from 'react';
 // Fix: Changed react-router-dom import to use namespace import to resolve "no exported member" error.
 import * as ReactRouterDOM from 'react-router-dom';
 import { getTenantById } from '../services/tenantService';
 import type { Tenant } from '../types';
 import { FloatingChatButton } from '../components/FloatingChatButton';
+import { ChatWidget } from '../components/ChatWidget';
+import { clearSessionId } from '../utils/session';
 
 const EmbedPage: React.FC = () => {
   const { tenantId } = ReactRouterDOM.useParams<{ tenantId: string }>();
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     const fetchTenant = async () => {
@@ -37,12 +39,18 @@ const EmbedPage: React.FC = () => {
     fetchTenant();
   }, [tenantId]);
 
-  // FIX: This hook makes the iframe container itself invisible on the parent website,
-  // so only the floating button is visible initially, solving the "box in the background" issue.
   useEffect(() => {
     document.body.style.backgroundColor = 'transparent';
   }, []);
 
+  const toggleChat = () => {
+    setIsChatOpen(prev => {
+        if (prev) {
+            clearSessionId();
+        }
+        return !prev;
+    });
+  };
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen bg-transparent"><p>Loading Assistant...</p></div>;
@@ -56,9 +64,12 @@ const EmbedPage: React.FC = () => {
     return null;
   }
 
+  // FIX: This container makes the entire iframe area "click-through" when the chat is closed,
+  // preventing the invisible iframe from blocking content on the parent page on all devices.
   return (
-    <div className="w-full h-screen bg-transparent">
-      <FloatingChatButton tenant={tenant} />
+    <div className={`w-full h-screen bg-transparent ${!isChatOpen ? 'pointer-events-none' : ''}`}>
+      {isChatOpen && <ChatWidget tenant={tenant} isEmbed={true} />}
+      <FloatingChatButton tenant={tenant} isOpen={isChatOpen} onClick={toggleChat} />
     </div>
   );
 };
