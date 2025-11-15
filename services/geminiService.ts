@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type, Content } from "@google/genai";
 import type { ChatMessage } from "../types";
 
@@ -6,13 +5,10 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    // FIX: Use the environment variable for the API key as is the standard and secure practice.
-    // The hardcoded key was likely a Firebase key, causing the "not configured" error.
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-      throw new Error("API_KEY is not configured.");
+    if (!process.env.API_KEY) {
+        throw new Error("A chave de API não está configurada. Para que o aplicativo funcione fora do AI Studio, você deve definir a variável de ambiente `API_KEY` em sua plataforma de hospedagem (como Bolt, Vercel, etc.).");
     }
-    ai = new GoogleGenAI({ apiKey });
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
   return ai;
 };
