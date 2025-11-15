@@ -1,6 +1,8 @@
 
+
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+// Fix: Changed react-router-dom import to use namespace import to resolve "no exported member" error.
+import * as ReactRouterDOM from 'react-router-dom';
 import { getTenantById } from '../services/tenantService';
 import type { Tenant } from '../types';
 import { ChatWidget } from '../components/ChatWidget';
@@ -10,7 +12,7 @@ import { OnzyLogoIcon } from '../components/Icons';
 type View = 'assistant' | 'dashboard';
 
 const TenantPage: React.FC = () => {
-  const { tenantId } = useParams<{ tenantId: string }>();
+  const { tenantId } = ReactRouterDOM.useParams<{ tenantId: string }>();
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,12 +71,12 @@ const TenantPage: React.FC = () => {
             <OnzyLogoIcon className="w-8 h-8" style={{ color: tenant.themeColor }} />
             <h1 className="text-2xl sm:text-3xl font-bold text-onzy-text">{tenant.name}</h1>
           </div>
-          <Link
+          <ReactRouterDOM.Link
             to="/"
             className="text-sm text-onzy-text-secondary hover:text-onzy-neon border border-onzy-light-gray px-4 py-2 rounded-lg transition-colors"
           >
             &larr; Voltar ao Painel
-          </Link>
+          </ReactRouterDOM.Link>
         </header>
 
         <main>
