@@ -1,12 +1,14 @@
 
+
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+// Fix: Changed react-router-dom import to use namespace import to resolve "no exported member" error.
+import * as ReactRouterDOM from 'react-router-dom';
 import { getTenantById } from '../services/tenantService';
 import type { Tenant } from '../types';
 import { FloatingChatButton } from '../components/FloatingChatButton';
 
 const EmbedPage: React.FC = () => {
-  const { tenantId } = useParams<{ tenantId: string }>();
+  const { tenantId } = ReactRouterDOM.useParams<{ tenantId: string }>();
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,12 +37,19 @@ const EmbedPage: React.FC = () => {
     fetchTenant();
   }, [tenantId]);
 
+  // FIX: This hook makes the iframe container itself invisible on the parent website,
+  // so only the floating button is visible initially, solving the "box in the background" issue.
+  useEffect(() => {
+    document.body.style.backgroundColor = 'transparent';
+  }, []);
+
+
   if (loading) {
-    return <div className="flex items-center justify-center h-screen bg-onzy-dark"><p>Loading Assistant...</p></div>;
+    return <div className="flex items-center justify-center h-screen bg-transparent"><p>Loading Assistant...</p></div>;
   }
   
   if (error) {
-    return <div className="flex items-center justify-center h-screen bg-onzy-dark"><p className="text-red-500">{error}</p></div>;
+    return <div className="flex items-center justify-center h-screen bg-transparent"><p className="text-red-500">{error}</p></div>;
   }
 
   if (!tenant) {
