@@ -14,11 +14,20 @@ export const EmbedCodeModal: React.FC<EmbedCodeModalProps> = ({ isOpen, onClose,
   if (!isOpen || !tenantId) return null;
 
   const embedUrl = `${window.location.origin}${window.location.pathname}#/embed/${tenantId}`;
+  
+  // FIX: Updated iframe style to be larger and responsive for both desktop and mobile.
+  // This provides a much better user experience than a small, fixed-size iframe.
   const embedCode = `<iframe
   src="${embedUrl}"
-  width="100%"
-  height="100%"
-  style="position: fixed; bottom: 0; right: 0; border: none; width: 300px; height: 500px; z-index: 9999;"
+  style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    border: none;
+    z-index: 9999;
+    width: min(90vw, 400px);
+    height: min(80vh, 700px);
+  "
   allow="microphone"
 ></iframe>`;
 
