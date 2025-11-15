@@ -103,7 +103,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
   const containerClass = isEmbed
     // FIX: Adjusted margins for a better fit inside a larger, responsive iframe.
     // The bottom margin ensures it clears the close button properly.
-    ? 'fixed top-4 bottom-24 right-4 left-4 rounded-lg shadow-2xl flex flex-col z-40'
+    ? 'fixed top-4 bottom-20 right-4 left-4 rounded-lg shadow-2xl flex flex-col z-40'
     : 'w-full h-full bg-onzy-gray rounded-lg flex flex-col';
 
   return (
@@ -137,25 +137,28 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
         <div ref={messagesEndRef} />
       </div>
       <div className="p-4 border-t border-onzy-light-gray">
-        <div className="flex items-center justify-between mb-2">
-            <div className="text-xs text-onzy-text-secondary">AI Model</div>
-            <div className="flex items-center space-x-2 p-1 bg-onzy-dark rounded-full">
-                <button
-                    onClick={() => setUseProModel(false)}
-                    className={`px-3 py-1 text-xs rounded-full transition-colors ${!useProModel ? 'bg-onzy-neon text-onzy-darker' : 'text-onzy-text-secondary'}`}
-                >
-                    <ZapIcon className="w-4 h-4 inline-block mr-1"/>
-                    Fast
-                </button>
-                <button
-                    onClick={() => setUseProModel(true)}
-                    className={`px-3 py-1 text-xs rounded-full transition-colors ${useProModel ? 'bg-onzy-neon text-onzy-darker' : 'text-onzy-text-secondary'}`}
-                >
-                    <BrainCircuitIcon className="w-4 h-4 inline-block mr-1"/>
-                    Thinking Mode
-                </button>
-            </div>
-        </div>
+        {/* FIX: Conditionally hide AI model selection when embedded */}
+        {!isEmbed && (
+          <div className="flex items-center justify-between mb-2">
+              <div className="text-xs text-onzy-text-secondary">AI Model</div>
+              <div className="flex items-center space-x-2 p-1 bg-onzy-dark rounded-full">
+                  <button
+                      onClick={() => setUseProModel(false)}
+                      className={`px-3 py-1 text-xs rounded-full transition-colors ${!useProModel ? 'bg-onzy-neon text-onzy-darker' : 'text-onzy-text-secondary'}`}
+                  >
+                      <ZapIcon className="w-4 h-4 inline-block mr-1"/>
+                      Fast
+                  </button>
+                  <button
+                      onClick={() => setUseProModel(true)}
+                      className={`px-3 py-1 text-xs rounded-full transition-colors ${useProModel ? 'bg-onzy-neon text-onzy-darker' : 'text-onzy-text-secondary'}`}
+                  >
+                      <BrainCircuitIcon className="w-4 h-4 inline-block mr-1"/>
+                      Thinking Mode
+                  </button>
+              </div>
+          </div>
+        )}
         <form onSubmit={handleSend} className="flex items-center bg-onzy-light-gray rounded-lg">
           <input
             type="text"
