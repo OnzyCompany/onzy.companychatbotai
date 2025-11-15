@@ -1,6 +1,8 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+// Fix: Changed react-router-dom import to use namespace import to resolve "no exported member" error.
+import * as ReactRouterDOM from 'react-router-dom';
 import { getTenants, addTenant, updateTenant, deleteTenant } from '../services/tenantService';
 import type { Tenant } from '../types';
 import { TenantFormModal } from '../components/TenantFormModal';
@@ -122,10 +124,10 @@ const AdminPanel: React.FC = () => {
             {tenants.map((tenant) => (
               <div key={tenant.id} className="bg-onzy-dark border border-onzy-light-gray rounded-lg p-5 flex flex-col justify-between">
                 <div>
-                  <Link to={`/${tenant.id}`} className="block hover:text-onzy-neon transition-colors">
+                  <ReactRouterDOM.Link to={`/${tenant.id}`} className="block hover:text-onzy-neon transition-colors">
                     <h3 className="text-xl font-bold" style={{ color: tenant.themeColor }}>{tenant.name}</h3>
                     <p className="text-sm text-onzy-text-secondary">ID: {tenant.id}</p>
-                  </Link>
+                  </ReactRouterDOM.Link>
                 </div>
                 <div className="mt-6 flex items-center justify-between border-t border-onzy-light-gray pt-4">
                   <button onClick={() => openEmbedModal(tenant.id)} className="text-sm text-onzy-text-secondary hover:text-onzy-neon">Código</button>
