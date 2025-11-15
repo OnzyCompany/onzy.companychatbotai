@@ -3,15 +3,16 @@ import { getChatResponse, extractLeadInfo } from '../services/geminiService';
 import type { ChatMessage, Tenant } from '../types';
 import { getSessionId } from '../utils/session';
 import { findOrCreateLeadBySession, updateLead } from '../services/tenantService';
-import { SendIcon, ZapIcon, BrainCircuitIcon } from './Icons';
+import { SendIcon, ZapIcon, BrainCircuitIcon, OnzyLogoIcon, XIcon } from './Icons';
 import { loadChatHistory, saveChatHistory } from '../utils/session';
 
 interface ChatWidgetProps {
   tenant: Tenant;
   isEmbed: boolean;
+  onClose?: () => void;
 }
 
-export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
+export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed, onClose }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const savedHistory = loadChatHistory(tenant.id);
     return savedHistory || [
@@ -100,7 +101,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
   };
 
   const containerClass = isEmbed
-    ? 'fixed inset-0 flex flex-col'
+    ? 'fixed inset-0 flex flex-col bg-onzy-gray rounded-lg shadow-2xl'
     : 'w-full h-full bg-onzy-gray rounded-lg flex flex-col';
 
   return (
@@ -109,9 +110,27 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
       style={{ 
         borderColor: tenant.themeColor, 
         borderWidth: isEmbed ? '1px' : '0',
-        backgroundColor: isEmbed ? '#1a1a1a' : undefined,
       }}
     >
+      {isEmbed && (
+          <div className="flex justify-between items-center p-4 border-b border-onzy-light-gray flex-shrink-0">
+            <div className="flex items-center space-x-3">
+              <OnzyLogoIcon className="w-8 h-8" style={{ color: tenant.themeColor }} />
+              <div>
+                <h3 className="font-bold text-lg">{tenant.name}</h3>
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  <p className="text-xs text-onzy-text-secondary">Online</p>
+                </div>
+              </div>
+            </div>
+            {onClose && (
+              <button onClick={onClose} className="text-onzy-text-secondary hover:text-onzy-neon">
+                <XIcon className="w-6 h-6" />
+              </button>
+            )}
+          </div>
+        )}
       <div className="flex-grow p-4 overflow-y-auto">
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
@@ -133,7 +152,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
         )}
         <div ref={messagesEndRef} />
       </div>
-      <div className={`p-4 border-t border-onzy-light-gray ${isEmbed ? 'pb-24' : ''}`}>
+      <div className={`p-4 border-t border-onzy-light-gray`}>
         {/* FIX: Conditionally hide AI model selection when embedded */}
         {!isEmbed && (
           <div className="flex items-center justify-between mb-2">
