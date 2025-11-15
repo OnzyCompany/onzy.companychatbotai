@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { XIcon } from './Icons';
 
@@ -15,24 +14,19 @@ export const EmbedCodeModal: React.FC<EmbedCodeModalProps> = ({ isOpen, onClose,
 
   const embedUrl = `${window.location.origin}${window.location.pathname}#/embed/${tenantId}`;
   
-  // FIX: Updated iframe style to be larger and responsive for both desktop and mobile.
-  // This provides a much better user experience than a small, fixed-size iframe.
   const embedCode = `<iframe
   src="${embedUrl}"
+  title="Onzy AI Assistant"
   style="
     position: fixed;
-    bottom: 0;
-    right: 0;
+    bottom: 20px;
+    right: 20px;
     border: none;
     z-index: 9999;
-    width: 100%;
-    height: 100%;
-    max-width: 440px;
-    max-height: 700px;
-    margin: 20px;
+    width: min(420px, 90vw);
+    height: min(720px, 85vh);
     border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2);
-    transition: all 0.3s ease-in-out;
+    box-shadow: 0 5px 40px rgba(0,0,0,0.16);
   "
   allow="microphone"
 ></iframe>`;
