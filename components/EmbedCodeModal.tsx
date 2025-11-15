@@ -13,11 +13,13 @@ export const EmbedCodeModal: React.FC<EmbedCodeModalProps> = ({ isOpen, onClose,
 
   if (!isOpen || !tenantId) return null;
 
-  const embedUrl = `${window.location.origin}${window.location.pathname}#/embed/${tenantId}`;
+  // FIX: Make URL generation more robust by removing pathname dependency.
+  // This ensures the URL is always based on the root of the domain.
+  const embedUrl = `${window.location.origin}/#/embed/${tenantId}`;
   
   const embedCode = `<iframe
   src="${embedUrl}"
-  style="position:fixed; bottom:20px; right:20px; width:min(90vw, 400px); height:min(80vh, 700px); border:none; border-radius:12px; z-index:9999;"
+  style="position:fixed; bottom:20px; right:20px; width:min(90vw, 400px); height:min(80vh, 700px); border:none; border-radius:12px; z-index:9999; box-shadow: 0 10px 25px rgba(0,0,0,0.2);"
   allow="clipboard-write; autoplay; microphone"
   title="Onzy AI Assistant">
 </iframe>`;
