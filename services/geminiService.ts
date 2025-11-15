@@ -22,18 +22,18 @@ const buildContents = (history: ChatMessage[]): Content[] => {
     }));
 }
 
-export const streamChatResponse = async (
+export const getChatResponse = async (
     history: ChatMessage[],
     systemPrompt: string,
     useProModel: boolean
-) => {
+): Promise<string> => {
     const modelName = useProModel ? 'gemini-2.5-pro' : 'gemini-flash-lite-latest';
     const config = useProModel ? { thinkingConfig: { thinkingBudget: 32768 } } : {};
     
     const contents = buildContents(history);
     
     const genAI = getAi();
-    return genAI.models.generateContentStream({
+    const response = await genAI.models.generateContent({
         model: modelName,
         contents,
         config: {
@@ -41,6 +41,8 @@ export const streamChatResponse = async (
             systemInstruction: systemPrompt,
         }
     });
+
+    return response.text;
 };
 
 

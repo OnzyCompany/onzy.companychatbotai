@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { streamChatResponse, extractLeadInfo } from '../services/geminiService';
+import { getChatResponse, extractLeadInfo } from '../services/geminiService';
 import type { ChatMessage, Tenant } from '../types';
 import { getSessionId } from '../utils/session';
 import { findOrCreateLeadBySession, updateLead } from '../services/tenantService';
@@ -73,31 +73,21 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
     setIsLoading(true);
 
     try {
-      const stream = await streamChatResponse(newHistory, tenant.systemPrompt, useProModel);
+      const modelResponseText = await getChatResponse(newHistory, tenant.systemPrompt, useProModel);
       
-      let modelResponse = '';
-      setMessages(prev => [...prev, { role: 'model', parts: [{ text: '' }], timestamp: Date.now() }]);
-
-      for await (const chunk of stream) {
-        const chunkText = chunk.text;
-        modelResponse += chunkText;
-        setMessages(prev => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage.role === 'model') {
-            lastMessage.parts[0].text = modelResponse;
-          }
-          return newMessages;
-        });
-      }
-
-      // Fix: Explicitly type the final message to prevent type widening of the 'role' property.
-      const finalModelMessage: ChatMessage = { role: 'model', parts: [{ text: modelResponse }], timestamp: Date.now() };
+      const finalModelMessage: ChatMessage = {
+        role: 'model',
+        parts: [{ text: modelResponseText }],
+        timestamp: Date.now(),
+      };
+      
+      setMessages(prev => [...prev, finalModelMessage]);
+      
       const finalHistory = [...newHistory, finalModelMessage];
       processLeadExtraction(finalHistory);
 
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error sending message (non-streaming):", error);
       const errorMessage: ChatMessage = {
         role: 'model',
         parts: [{ text: 'Desculpe, ocorreu um erro. Por favor, tente novamente.' }],
@@ -123,7 +113,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
             </div>
           </div>
         ))}
-         {isLoading && (!messages.length || messages[messages.length - 1].role === 'user') && (
+         {isLoading && (
             <div className="flex justify-start mb-4">
               <div className="max-w-xs rounded-lg px-4 py-2 bg-onzy-light-gray">
                 <div className="flex items-center space-x-2">
