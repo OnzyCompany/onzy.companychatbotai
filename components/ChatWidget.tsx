@@ -101,11 +101,21 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
   };
 
   const containerClass = isEmbed
-    ? 'fixed bottom-20 right-5 w-full max-w-sm h-[70vh] max-h-[600px] bg-onzy-gray rounded-lg shadow-2xl flex flex-col z-50'
+    // FIX: Replaced complex sizing with robust positioning to fill the iframe gracefully.
+    // This solves the "cut off" appearance. The background color is now handled by an inline style.
+    ? 'fixed top-5 bottom-20 right-5 left-5 rounded-lg shadow-2xl flex flex-col z-50'
     : 'w-full h-full bg-onzy-gray rounded-lg flex flex-col';
 
   return (
-    <div className={containerClass} style={{ borderColor: tenant.themeColor, borderWidth: isEmbed ? '1px' : '0' }}>
+    <div 
+      className={containerClass} 
+      style={{ 
+        borderColor: tenant.themeColor, 
+        borderWidth: isEmbed ? '1px' : '0',
+        // FIX: Applied background color directly to prevent transparency issues in the iframe.
+        backgroundColor: isEmbed ? '#1a1a1a' : undefined,
+      }}
+    >
       <div className="flex-grow p-4 overflow-y-auto">
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
