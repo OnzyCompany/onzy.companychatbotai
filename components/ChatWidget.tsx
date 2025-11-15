@@ -101,9 +101,9 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
   };
 
   const containerClass = isEmbed
-    // FIX: Replaced complex sizing with robust positioning to fill the iframe gracefully.
-    // This solves the "cut off" appearance. The background color is now handled by an inline style.
-    ? 'fixed top-5 bottom-20 right-5 left-5 rounded-lg shadow-2xl flex flex-col z-50'
+    // FIX: Adjusted margins for a better fit inside a larger, responsive iframe.
+    // The bottom margin ensures it clears the close button properly.
+    ? 'fixed top-4 bottom-24 right-4 left-4 rounded-lg shadow-2xl flex flex-col z-40'
     : 'w-full h-full bg-onzy-gray rounded-lg flex flex-col';
 
   return (
@@ -112,7 +112,6 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ tenant, isEmbed }) => {
       style={{ 
         borderColor: tenant.themeColor, 
         borderWidth: isEmbed ? '1px' : '0',
-        // FIX: Applied background color directly to prevent transparency issues in the iframe.
         backgroundColor: isEmbed ? '#1a1a1a' : undefined,
       }}
     >
