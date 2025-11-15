@@ -68,8 +68,8 @@ const EmbedPage: React.FC = () => {
   // preventing the invisible iframe from blocking content on the parent page on all devices.
   return (
     <div className={`w-full h-screen bg-transparent ${!isChatOpen ? 'pointer-events-none' : ''}`}>
-      {isChatOpen && <ChatWidget tenant={tenant} isEmbed={true} />}
-      <FloatingChatButton tenant={tenant} isOpen={isChatOpen} onClick={toggleChat} />
+      {isChatOpen && <ChatWidget tenant={tenant} isEmbed={true} onClose={toggleChat} />}
+      {!isChatOpen && <FloatingChatButton tenant={tenant} isOpen={isChatOpen} onClick={toggleChat} />}
     </div>
   );
 };
