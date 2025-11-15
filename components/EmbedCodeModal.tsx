@@ -1,66 +1,77 @@
-import React, { useState } from 'react';
-import { XIcon } from './Icons';
 
-interface EmbedCodeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  tenantId: string | null;
-}
+import React, { useState, useEffect } from 'react';
+// Fix: Changed react-router-dom import to use namespace import to resolve "no exported member" error.
+import * as ReactRouterDOM from 'react-router-dom';
+import { getTenantById } from '../services/tenantService';
+import type { Tenant } from '../types';
+import { FloatingChatButton } from '../components/FloatingChatButton';
+import { ChatWidget } from '../components/ChatWidget';
+import { clearSessionId } from '../utils/session';
 
-export const EmbedCodeModal: React.FC<EmbedCodeModalProps> = ({ isOpen, onClose, tenantId }) => {
-  const [copied, setCopied] = useState(false);
+const EmbedPage: React.FC = () => {
+  const { tenantId } = ReactRouterDOM.useParams<{ tenantId: string }>();
+  const [tenant, setTenant] = useState<Tenant | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
-  if (!isOpen || !tenantId) return null;
+  useEffect(() => {
+    const fetchTenant = async () => {
+      if (!tenantId) {
+        setError("Tenant ID is missing.");
+        setLoading(false);
+        return;
+      }
+      try {
+        const tenantData = await getTenantById(tenantId);
+        if (tenantData) {
+          setTenant(tenantData);
+        } else {
+          setError("Tenant not found.");
+        }
+      } catch (err) {
+        setError("Failed to load tenant configuration.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTenant();
+  }, [tenantId]);
 
-  const embedUrl = `${window.location.origin}${window.location.pathname}#/embed/${tenantId}`;
-  
-  const embedCode = `<iframe
-  src="${embedUrl}"
-  title="Onzy AI Assistant"
-  style="
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    border: none;
-    z-index: 9999;
-    width: min(420px, 90vw);
-    height: min(720px, 85vh);
-    border-radius: 12px;
-    box-shadow: 0 5px 40px rgba(0,0,0,0.16);
-  "
-  allow="microphone"
-></iframe>`;
+  useEffect(() => {
+    document.body.style.backgroundColor = 'transparent';
+  }, []);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(embedCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const toggleChat = () => {
+    setIsChatOpen(prev => {
+        if (prev) {
+            clearSessionId();
+        }
+        return !prev;
+    });
   };
 
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen bg-transparent"><p>Loading Assistant...</p></div>;
+  }
+  
+  if (error) {
+    return <div className="flex items-center justify-center h-screen bg-transparent"><p className="text-red-500">{error}</p></div>;
+  }
+
+  if (!tenant) {
+    return null;
+  }
+
+  // FIX: This container makes the entire iframe area "click-through" when the chat is closed,
+  // preventing the invisible iframe from blocking content on the parent page on all devices.
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div className="bg-onzy-dark border border-onzy-light-gray rounded-lg p-8 w-full max-w-lg relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-onzy-text-secondary hover:text-onzy-neon">
-          <XIcon className="w-6 h-6" />
-        </button>
-        <h2 className="text-2xl font-bold mb-4">Código de Incorporação</h2>
-        <p className="text-sm text-onzy-text-secondary mb-4">
-          Copie e cole este código no HTML do seu site para adicionar o chatbot.
-        </p>
-        <div className="bg-onzy-darker p-4 rounded-lg">
-          <pre className="text-sm text-onzy-text whitespace-pre-wrap overflow-x-auto">
-            <code>{embedCode}</code>
-          </pre>
-        </div>
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={handleCopy}
-            className="px-4 py-2 rounded-lg bg-onzy-neon text-onzy-darker font-bold hover:opacity-90 transition-opacity"
-          >
-            {copied ? 'Copiado!' : 'Copiar Código'}
-          </button>
-        </div>
-      </div>
+    <div className={`w-full h-screen bg-transparent ${!isChatOpen ? 'pointer-events-none' : ''}`}>
+      {isChatOpen && <ChatWidget tenant={tenant} isEmbed={true} onClose={toggleChat} />}
+      {!isChatOpen && <FloatingChatButton tenant={tenant} isOpen={isChatOpen} onClick={toggleChat} />}
     </div>
   );
 };
+
+export default EmbedPage;
