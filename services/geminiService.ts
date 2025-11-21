@@ -4,10 +4,18 @@ import type { ChatMessage } from "../types";
 
 let ai: GoogleGenAI | null = null;
 
+// Chave de fallback para garantir que o app funcione se o .env não carregar
+const FALLBACK_KEY = "AIzaSyBcHPmBD28ifG9g5nXQOkH4tTX6u39CVO4";
+
 const getAi = () => {
   if (!ai) {
-    // Tenta ler a chave do ambiente padrão (process.env) ou do Vite (import.meta.env) com o nome que você definiu
-    let apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+    // Ordem de prioridade:
+    // 1. Variável de ambiente do Vite (VITE_GEMINI_API_KEY)
+    // 2. Variável de ambiente padrão (API_KEY)
+    // 3. Chave fixa (Fallback)
+    let apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || 
+                 process.env.API_KEY || 
+                 FALLBACK_KEY;
 
     if (!apiKey) {
         throw new Error("A chave de API não está configurada. Verifique seu arquivo .env e certifique-se de que VITE_GEMINI_API_KEY está definida.");
