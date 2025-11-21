@@ -12,7 +12,10 @@ import {
     query, 
     where, 
     Timestamp,
-    serverTimestamp
+    serverTimestamp,
+    QuerySnapshot,
+    DocumentSnapshot,
+    DocumentData
 } from "firebase/firestore";
 import type { Tenant, Lead } from "../types";
 
@@ -50,10 +53,19 @@ const MOCK_TENANTS: Tenant[] = [
 
 const checkDb = () => {
   if (!db) {
-    // Quietly fail to null to allow fallback logic to take over
     return null;
   }
   return db;
+};
+
+// Helper para evitar travamentos por bloqueio de CORS/Firebase
+const withTimeout = <T>(promise: Promise<T>, ms: number = 2000): Promise<T> => {
+    return Promise.race([
+        promise,
+        new Promise<T>((_, reject) => 
+            setTimeout(() => reject(new Error("Firebase Connection Timeout (Domain likely blocked)")), ms)
+        )
+    ]);
 };
 
 // --- Tenant Services ---
@@ -63,10 +75,10 @@ export const getTenants = async (): Promise<Tenant[]> => {
   
   try {
       const tenantsCol = collection(db, 'tenants');
-      const snapshot = await getDocs(tenantsCol);
+      // Timeout curto para evitar tela branca se o domínio for bloqueado
+      const snapshot = await withTimeout<QuerySnapshot<DocumentData>>(getDocs(tenantsCol));
       const dbTenants = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tenant));
       
-      // Merge DB tenants with Mock tenants (if distinct IDs) so Demo always shows up
       const combined = [...dbTenants];
       MOCK_TENANTS.forEach(mock => {
           if (!combined.find(t => t.id === mock.id)) {
@@ -76,7 +88,7 @@ export const getTenants = async (): Promise<Tenant[]> => {
       
       return combined.length > 0 ? combined.map(migrateTenantColor) : MOCK_TENANTS;
   } catch (error) {
-      console.warn("Firebase connection failed (likely CORS/Domain restrictions). Using Mock Data.", error);
+      console.warn("Firebase load failed or timed out. Using Mock Data.", error);
       return MOCK_TENANTS;
   }
 };
@@ -88,24 +100,24 @@ export const getTenantById = async (id: string): Promise<Tenant | null> => {
   if (db && !id.startsWith('mock-')) {
     try {
         const tenantRef = doc(db, 'tenants', id);
-        const snapshot = await getDoc(tenantRef);
+        // Timeout CRÍTICO: Se o Firebase bloquear o domínio, ele não responde erro imediato, ele trava.
+        // O timeout força o erro para cair no catch e mostrar o Mock.
+        const snapshot = await withTimeout<DocumentSnapshot<DocumentData>>(getDoc(tenantRef));
+        
         if (snapshot.exists()) {
             const tenantData = { id: snapshot.id, ...snapshot.data() } as Tenant;
             return migrateTenantColor(tenantData);
         }
     } catch (error) {
-        console.warn("Error fetching tenant from DB (Using Mock fallback):", error);
-        // Se der erro (ex: permissão negada por domínio incorreto), cai para o fallback abaixo
+        console.warn("Error fetching tenant from DB (likely blocked domain). Fallback to Mock.", error);
+        // Continua para o fallback abaixo
     }
   }
 
   // Fallback: Procura nos Mocks
-  // Isso garante que o Iframe funcione mesmo se o DB falhar
   const mockTenant = MOCK_TENANTS.find(t => t.id === id) || MOCK_TENANTS.find(t => t.id === 'mock-1');
   
   if (mockTenant) {
-      // Se o ID solicitado não existe nos mocks, mas retornamos o mock-1 por segurança,
-      // ajustamos o ID para manter consistência visual, a menos que seja um ID específico
       return migrateTenantColor(mockTenant);
   }
   
@@ -115,7 +127,7 @@ export const getTenantById = async (id: string): Promise<Tenant | null> => {
 export const addTenant = async (tenantData: Omit<Tenant, 'id'>): Promise<string> => {
   const db = checkDb();
   if (!db) {
-      alert("Modo Demo: Tenant criado apenas localmente (não salvo).");
+      alert("Modo Demo: Tenant criado apenas localmente.");
       return `mock-new-${Date.now()}`;
   }
   try {
@@ -123,7 +135,7 @@ export const addTenant = async (tenantData: Omit<Tenant, 'id'>): Promise<string>
     return docRef.id;
   } catch (e) {
       console.error(e);
-      alert("Erro ao salvar no banco (verifique conexao/permissoes). Criando localmente.");
+      alert("Erro ao salvar no banco. Criando localmente.");
       return `mock-new-${Date.now()}`;
   }
 };
@@ -131,7 +143,6 @@ export const addTenant = async (tenantData: Omit<Tenant, 'id'>): Promise<string>
 export const updateTenant = async (id: string, tenantData: Partial<Tenant>): Promise<void> => {
   const db = checkDb();
   if (!db || id.startsWith('mock-')) {
-      alert("Modo Demo: Alterações não são salvas permanentemente.");
       return;
   }
   const tenantRef = doc(db, 'tenants', id);
@@ -141,7 +152,6 @@ export const updateTenant = async (id: string, tenantData: Partial<Tenant>): Pro
 export const deleteTenant = async (id: string): Promise<void> => {
   const db = checkDb();
   if (!db || id.startsWith('mock-')) {
-      alert("Modo Demo: Exclusão simulada.");
       return;
   }
   const tenantRef = doc(db, 'tenants', id);
@@ -152,7 +162,7 @@ export const deleteTenant = async (id: string): Promise<void> => {
 export const listenToLeads = (tenantId: string, callback: (leads: Lead[]) => void): (() => void) => {
     const db = checkDb();
     if (!db || tenantId.startsWith('mock-')) {
-        console.warn("Using mock leads");
+        // Retorna mock leads imediatamente
         callback([
             { id: 'lead-1', sessionId: 'sess-1', createdAt: {}, updatedAt: {}, nome: 'João Silva', email: 'joao@example.com' },
             { id: 'lead-2', sessionId: 'sess-2', createdAt: {}, updatedAt: {}, nome: 'Maria Santos', email: 'maria@example.com' }
@@ -169,6 +179,7 @@ export const listenToLeads = (tenantId: string, callback: (leads: Lead[]) => voi
             callback(leads);
         }, (error) => {
             console.error("Error listening to leads:", error);
+            // Em caso de erro de permissão/domínio no listener, não travamos a UI
             callback([]);
         });
         return unsubscribe;
@@ -208,7 +219,6 @@ export const findOrCreateLeadBySession = async (tenantId: string, sessionId: str
 export const updateLead = async (tenantId: string, leadId: string, data: Partial<Lead>): Promise<void> => {
     const db = checkDb();
     if (!db || tenantId.startsWith('mock-')) {
-        console.log("Modo Demo - Lead atualizado com:", data);
         return;
     }
     
