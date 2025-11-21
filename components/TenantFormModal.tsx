@@ -12,7 +12,7 @@ interface TenantFormModalProps {
 
 export const TenantFormModal: React.FC<TenantFormModalProps> = ({ isOpen, onClose, onSave, tenantToEdit }) => {
   const [name, setName] = useState('');
-  const [themeColor, setThemeColor] = useState('#00ffbb');
+  const [themeColor, setThemeColor] = useState('#9333ea');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [collectionFields, setCollectionFields] = useState('');
@@ -26,7 +26,7 @@ export const TenantFormModal: React.FC<TenantFormModalProps> = ({ isOpen, onClos
       setCollectionFields(tenantToEdit.collectionFields.join(', '));
     } else {
       setName('');
-      setThemeColor('#00ffbb');
+      setThemeColor('#9333ea');
       setSystemPrompt('You are a helpful assistant.');
       setWhatsappNumber('');
       setCollectionFields('');
