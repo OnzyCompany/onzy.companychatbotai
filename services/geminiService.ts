@@ -4,37 +4,31 @@ import type { ChatMessage } from "../types";
 
 let ai: GoogleGenAI | null = null;
 
-// LISTA DE CHAVES (FALLBACK)
-// Adicionei as duas chaves aqui. O sistema tentará usar a primeira se o .env falhar.
-const FALLBACK_KEYS = [
-    "AIzaSyDWCanj-H3ghy_oFhiq8-fwuWpR9iNXFD0", // Key 1 (Prioridade Atual)
-    "AIzaSyBcHPmBD28ifG9g5nXQOkH4tTX6u39CVO4"  // Key 2
-];
+// --- FORÇANDO A CHAVE DIRETA PARA RESOLVER O ERRO ---
+const DIRECT_KEY = "AIzaSyDWCanj-H3ghy_oFhiq8-fwuWpR9iNXFD0"; 
 
 const getAi = () => {
   if (!ai) {
-    // Ordem de prioridade:
-    // 1. Variável de ambiente do Vite (VITE_GEMINI_API_KEY)
-    // 2. Variável de ambiente padrão (API_KEY)
-    // 3. Primeira chave da lista de fallback
-    // 4. Segunda chave da lista de fallback
-    let apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || 
-                 process.env.API_KEY || 
-                 FALLBACK_KEYS[0] || 
-                 FALLBACK_KEYS[1];
+    // Simplificação total: Usar a chave direta.
+    // Se você precisar trocar, altere a constante DIRECT_KEY acima.
+    let apiKey = DIRECT_KEY;
 
+    // Fallback secundário apenas se a direta estiver vazia (o que não deve acontecer)
     if (!apiKey) {
-        throw new Error("A chave de API não está configurada. Verifique seu arquivo .env e certifique-se de que VITE_GEMINI_API_KEY está definida.");
+         apiKey = "AIzaSyBcHPmBD28ifG9g5nXQOkH4tTX6u39CVO4";
     }
 
-    // Sanitize key: remove whitespace and surrounding quotes if present
+    if (!apiKey) {
+        throw new Error("FATAL: Nenhuma chave de API foi encontrada no código.");
+    }
+
+    // Limpeza de segurança (remove aspas extras se houver)
     apiKey = apiKey.trim();
     if ((apiKey.startsWith('"') && apiKey.endsWith('"')) || (apiKey.startsWith("'") && apiKey.endsWith("'"))) {
         apiKey = apiKey.substring(1, apiKey.length - 1);
     }
 
-    // Debug log to help verify key loading (showing last few chars for security)
-    console.log(`Gemini API initialized with key ending in: ...${apiKey.slice(-4)}`);
+    console.log(`Gemini API initialized with hardcoded key ending in: ...${apiKey.slice(-4)}`);
     
     ai = new GoogleGenAI({ apiKey: apiKey });
   }
