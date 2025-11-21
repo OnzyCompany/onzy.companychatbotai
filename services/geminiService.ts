@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Content } from "@google/genai";
 import type { ChatMessage } from "../types";
 
@@ -8,6 +9,9 @@ const getAi = () => {
     if (!process.env.API_KEY) {
         throw new Error("A chave de API não está configurada. Para que o aplicativo funcione fora do AI Studio, você deve definir a variável de ambiente `API_KEY` em sua plataforma de hospedagem (como Bolt, Vercel, etc.).");
     }
+    // Debug log to help verify key loading (showing only first few chars)
+    console.log(`Gemini API initialized with key: ${process.env.API_KEY.substring(0, 5)}...`);
+    
     ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
   return ai;

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useCallback } from 'react';
 // Fix: Changed react-router-dom import to use namespace import to resolve "no exported member" error.
 import * as ReactRouterDOM from 'react-router-dom';
@@ -8,12 +7,6 @@ import type { Tenant } from '../types';
 import { TenantFormModal } from '../components/TenantFormModal';
 import { EmbedCodeModal } from '../components/EmbedCodeModal';
 import { OnzyLogoIcon } from '../components/Icons';
-
-const mockTenants: Tenant[] = [
-    { id: 'mock-1', name: 'Onzy AI (Preview)', themeColor: '#00ffbb', systemPrompt: 'You are a helpful AI assistant for Onzy.', whatsappNumber: '5511999998888', collectionFields: ['name', 'email'] },
-    { id: 'mock-2', name: 'Onzy Company (Preview)', themeColor: '#ff007f', systemPrompt: 'You are a helpful sales agent for Onzy Company.', whatsappNumber: '5521988887777', collectionFields: ['name', 'companyName', 'serviceType'] }
-];
-
 
 const AdminPanel: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -32,12 +25,8 @@ const AdminPanel: React.FC = () => {
       const tenantsData = await getTenants();
       setTenants(tenantsData);
     } catch (err: any) {
-      if (err.message && err.message.toLowerCase().includes("firestore is not initialized")) {
-        console.warn("Firestore not initialized, loading mock data for development preview.");
-        setTenants(mockTenants);
-      } else {
-        setError(err.message || "Falha ao carregar tenants.");
-      }
+      console.error("Failed to load tenants:", err);
+      setError(err.message || "Falha ao carregar tenants.");
     } finally {
       setLoading(false);
     }
@@ -59,7 +48,7 @@ const AdminPanel: React.FC = () => {
       setSelectedTenant(null);
     } catch (err) {
       console.error("Failed to save tenant:", err);
-      alert("Failed to save tenant. Check console for details. Are you in preview mode?");
+      alert("Erro ao salvar. Verifique o console.");
     }
   };
 
@@ -70,7 +59,7 @@ const AdminPanel: React.FC = () => {
         fetchTenants();
       } catch (err) {
         console.error("Failed to delete tenant:", err);
-        alert("Failed to delete tenant. Check console for details. Are you in preview mode?");
+        alert("Erro ao deletar. Verifique o console.");
       }
     }
   };
@@ -91,7 +80,7 @@ const AdminPanel: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen"><p>Loading Tenants...</p></div>;
+    return <div className="flex items-center justify-center h-screen"><p>Carregando...</p></div>;
   }
 
   if (error) {
