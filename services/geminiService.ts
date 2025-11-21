@@ -6,10 +6,10 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    let apiKey = process.env.API_KEY;
+    let apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
     if (!apiKey) {
-        throw new Error("A chave de API não está configurada. Para que o aplicativo funcione fora do AI Studio, você deve definir a variável de ambiente `API_KEY` em sua plataforma de hospedagem (como Bolt, Vercel, etc.).");
+        throw new Error("A chave de API não está configurada. Para que o aplicativo funcione fora do AI Studio, você deve definir a variável de ambiente `VITE_GEMINI_API_KEY` em sua plataforma de hospedagem (como Bolt, Vercel, etc.).");
     }
 
     // Sanitize key: remove whitespace and surrounding quotes if present
@@ -20,7 +20,7 @@ const getAi = () => {
 
     // Debug log to help verify key loading (showing only first few chars)
     console.log(`Gemini API initialized with key: ${apiKey.substring(0, 5)}...`);
-    
+
     ai = new GoogleGenAI({ apiKey: apiKey });
   }
   return ai;
