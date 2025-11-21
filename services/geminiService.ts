@@ -6,10 +6,11 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    let apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    // Tenta ler a chave do ambiente padrão (process.env) ou do Vite (import.meta.env) com o nome que você definiu
+    let apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
 
     if (!apiKey) {
-        throw new Error("A chave de API não está configurada. Para que o aplicativo funcione fora do AI Studio, você deve definir a variável de ambiente `VITE_GEMINI_API_KEY` em sua plataforma de hospedagem (como Bolt, Vercel, etc.).");
+        throw new Error("A chave de API não está configurada. Verifique seu arquivo .env e certifique-se de que VITE_GEMINI_API_KEY está definida.");
     }
 
     // Sanitize key: remove whitespace and surrounding quotes if present
@@ -20,7 +21,7 @@ const getAi = () => {
 
     // Debug log to help verify key loading (showing only first few chars)
     console.log(`Gemini API initialized with key: ${apiKey.substring(0, 5)}...`);
-
+    
     ai = new GoogleGenAI({ apiKey: apiKey });
   }
   return ai;
