@@ -16,12 +16,12 @@ import {
 } from "firebase/firestore";
 import type { Tenant, Lead } from "../types";
 
-// Mock Data for fallback when DB is not available
+// Mock Data for fallback when DB is not available or empty
 const MOCK_TENANTS: Tenant[] = [
     { 
         id: 'mock-1', 
         name: 'Onzy AI (Demo)', 
-        themeColor: '#00ffbb', 
+        themeColor: '#8b5cf6', // Changed to Purple
         systemPrompt: 'Você é o assistente virtual da Onzy AI. Seja útil, profissional e breve.', 
         whatsappNumber: '5511999998888', 
         collectionFields: ['nome', 'email'] 
@@ -38,7 +38,7 @@ const MOCK_TENANTS: Tenant[] = [
 
 const checkDb = () => {
   if (!db) {
-    console.warn("Firestore not initialized. Using mock mode for demonstration.");
+    // Quietly fail to null to allow fallback logic to take over
     return null;
   }
   return db;
@@ -52,7 +52,17 @@ export const getTenants = async (): Promise<Tenant[]> => {
   try {
       const tenantsCol = collection(db, 'tenants');
       const snapshot = await getDocs(tenantsCol);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tenant));
+      const dbTenants = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tenant));
+      
+      // Merge DB tenants with Mock tenants (if distinct IDs) so Demo always shows up
+      const combined = [...dbTenants];
+      MOCK_TENANTS.forEach(mock => {
+          if (!combined.find(t => t.id === mock.id)) {
+              combined.push(mock);
+          }
+      });
+      
+      return combined.length > 0 ? combined : MOCK_TENANTS;
   } catch (error) {
       console.error("Error fetching tenants, falling back to mock:", error);
       return MOCK_TENANTS;
@@ -61,16 +71,24 @@ export const getTenants = async (): Promise<Tenant[]> => {
 
 export const getTenantById = async (id: string): Promise<Tenant | null> => {
   const db = checkDb();
-  if (!db) return MOCK_TENANTS.find(t => t.id === id) || null;
   
-  try {
-      const tenantRef = doc(db, 'tenants', id);
-      const snapshot = await getDoc(tenantRef);
-      return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } as Tenant : null;
-  } catch (error) {
-      console.error("Error fetching tenant, falling back to mock:", error);
-      return MOCK_TENANTS.find(t => t.id === id) || null;
+  // Try DB first
+  if (db) {
+    try {
+        const tenantRef = doc(db, 'tenants', id);
+        const snapshot = await getDoc(tenantRef);
+        if (snapshot.exists()) {
+            return { id: snapshot.id, ...snapshot.data() } as Tenant;
+        }
+    } catch (error) {
+        console.error("Error fetching tenant from DB:", error);
+    }
   }
+
+  // Fallback: Check if it matches a Mock ID
+  // This ensures that even if DB is connected but empty, the Mock ID works.
+  const mockTenant = MOCK_TENANTS.find(t => t.id === id);
+  return mockTenant || null;
 };
 
 export const addTenant = async (tenantData: Omit<Tenant, 'id'>): Promise<string> => {
@@ -89,6 +107,11 @@ export const updateTenant = async (id: string, tenantData: Partial<Tenant>): Pro
       alert("Modo Demo: Alterações não são salvas permanentemente.");
       return;
   }
+  // Block updating mocks in real DB
+  if (id.startsWith('mock-')) {
+     alert("Não é possível editar tenants de demonstração no banco de dados real.");
+     return;
+  }
   const tenantRef = doc(db, 'tenants', id);
   await updateDoc(tenantRef, tenantData);
 };
@@ -99,6 +122,10 @@ export const deleteTenant = async (id: string): Promise<void> => {
       alert("Modo Demo: Exclusão simulada.");
       return;
   }
+  if (id.startsWith('mock-')) {
+      alert("Não é possível excluir tenants de demonstração.");
+      return;
+  }
   const tenantRef = doc(db, 'tenants', id);
   await deleteDoc(tenantRef);
 };
@@ -106,7 +133,7 @@ export const deleteTenant = async (id: string): Promise<void> => {
 // --- Lead Services ---
 export const listenToLeads = (tenantId: string, callback: (leads: Lead[]) => void): (() => void) => {
     const db = checkDb();
-    if (!db) {
+    if (!db || tenantId.startsWith('mock-')) {
         // Return mock leads for demo
         console.warn("Using mock leads");
         callback([
@@ -132,7 +159,7 @@ export const listenToLeads = (tenantId: string, callback: (leads: Lead[]) => voi
 
 export const findOrCreateLeadBySession = async (tenantId: string, sessionId: string): Promise<string> => {
     const db = checkDb();
-    if (!db) return "mock-lead-id";
+    if (!db || tenantId.startsWith('mock-')) return "mock-lead-id";
     
     try {
         const leadsCol = collection(db, 'tenants', tenantId, 'leads');
@@ -159,7 +186,7 @@ export const findOrCreateLeadBySession = async (tenantId: string, sessionId: str
 
 export const updateLead = async (tenantId: string, leadId: string, data: Partial<Lead>): Promise<void> => {
     const db = checkDb();
-    if (!db) {
+    if (!db || tenantId.startsWith('mock-')) {
         console.log("Modo Demo - Lead atualizado com:", data);
         return;
     }

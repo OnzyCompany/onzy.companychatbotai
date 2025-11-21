@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-// Fix: Changed react-router-dom import to use namespace import to resolve "no exported member" error.
 import * as ReactRouterDOM from 'react-router-dom';
 import { getTenantById } from '../services/tenantService';
 import type { Tenant } from '../types';
@@ -16,6 +15,10 @@ const EmbedPage: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
+    // Force transparent background for iframe usage
+    document.documentElement.style.backgroundColor = 'transparent';
+    document.body.style.backgroundColor = 'transparent';
+    
     const fetchTenant = async () => {
       if (!tenantId) {
         setError("Tenant ID is missing.");
@@ -27,7 +30,7 @@ const EmbedPage: React.FC = () => {
         if (tenantData) {
           setTenant(tenantData);
         } else {
-          setError("Tenant not found.");
+          setError(`Tenant "${tenantId}" not found.`);
         }
       } catch (err) {
         setError("Failed to load tenant configuration.");
@@ -37,11 +40,13 @@ const EmbedPage: React.FC = () => {
       }
     };
     fetchTenant();
+    
+    return () => {
+        // Cleanup if unmounted (though usually unmount implies page close)
+        document.documentElement.style.backgroundColor = '';
+        document.body.style.backgroundColor = '';
+    }
   }, [tenantId]);
-
-  useEffect(() => {
-    document.body.style.backgroundColor = 'transparent';
-  }, []);
 
   const toggleChat = () => {
     setIsChatOpen(prev => {
@@ -53,19 +58,27 @@ const EmbedPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen bg-transparent"><p>Loading Assistant...</p></div>;
+    return null; // Keep invisible while loading
   }
   
   if (error) {
-    return <div className="flex items-center justify-center h-screen bg-transparent"><p className="text-red-500">{error}</p></div>;
+    // Show a visible error bubble so the user knows the iframe loaded but failed
+    return (
+        <div className="fixed bottom-5 right-5 bg-red-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-xs">
+            <p className="text-sm font-bold">Onzy Error:</p>
+            <p className="text-xs">{error}</p>
+        </div>
+    );
   }
 
   if (!tenant) {
-    return null;
+    return (
+        <div className="fixed bottom-5 right-5 bg-red-600 text-white p-4 rounded-lg shadow-lg z-50">
+            <p className="text-xs">Tenant not initialized.</p>
+        </div>
+    );
   }
 
-  // FIX: This container makes the entire iframe area "click-through" when the chat is closed,
-  // preventing the invisible iframe from blocking content on the parent page on all devices.
   return (
     <div className={`w-full h-screen bg-transparent ${!isChatOpen ? 'pointer-events-none' : ''}`}>
       {isChatOpen && <ChatWidget tenant={tenant} isEmbed={true} onClose={toggleChat} />}
