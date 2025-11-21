@@ -1,3 +1,4 @@
+
 import React, { useState, useLayoutEffect } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 import { getTenantById } from '../services/tenantService';
@@ -15,18 +16,34 @@ const EmbedPage: React.FC = () => {
 
   // Garante que o fundo seja transparente assim que o componente montar
   useLayoutEffect(() => {
-    document.documentElement.style.backgroundColor = 'transparent';
-    document.body.style.backgroundColor = 'transparent';
-    const root = document.getElementById('root');
-    if (root) root.style.backgroundColor = 'transparent';
+    const clearBackground = () => {
+        // Remove propriedades de cor do HTML, BODY e ROOT
+        document.documentElement.style.setProperty('background-color', 'transparent', 'important');
+        document.body.style.setProperty('background-color', 'transparent', 'important');
+        const root = document.getElementById('root');
+        if (root) root.style.setProperty('background-color', 'transparent', 'important');
+        
+        // Remove classes do Tailwind que possam estar definindo fundo
+        document.body.classList.remove('bg-onzy-dark', 'bg-onzy-darker', 'bg-gray-900', 'bg-black');
+        document.body.style.overflow = 'hidden'; // Evita barras de rolagem no iframe
+    };
+
+    // Executa imediatamente
+    clearBackground();
     
-    // Remove classes escuras que possam ter sido injetadas
-    document.body.classList.remove('bg-onzy-dark', 'bg-onzy-darker');
+    // E reforça a cada 100ms nos primeiros segundos para garantir que nenhum CSS externo sobrescreva
+    const interval = setInterval(clearBackground, 100);
     
+    // Para o intervalo após 2 segundos
+    const timeout = setTimeout(() => clearInterval(interval), 2000);
+
     return () => {
-        // Cleanup opcional
-        document.documentElement.style.backgroundColor = '';
-        document.body.style.backgroundColor = '';
+        clearInterval(interval);
+        clearTimeout(timeout);
+        // Restaura estilos ao sair (opcional, mas boa prática se SPA mudar de rota)
+        document.documentElement.style.removeProperty('background-color');
+        document.body.style.removeProperty('background-color');
+        document.body.style.removeProperty('overflow');
     }
   }, []);
 
@@ -64,17 +81,17 @@ const EmbedPage: React.FC = () => {
   };
 
   if (loading) {
-    // Mostra um pequeno spinner transparente para indicar que está carregando (em vez de invisível total)
+    // Spinner de carregamento
     return (
-        <div className="fixed bottom-5 right-5 w-16 h-16 flex items-center justify-center z-50">
-            <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="fixed bottom-5 right-5 w-16 h-16 flex items-center justify-center z-[999999] pointer-events-none">
+            <div className="w-8 h-8 border-4 border-onzy-neon border-t-transparent rounded-full animate-spin"></div>
         </div>
     );
   }
   
   if (error) {
     return (
-        <div className="fixed bottom-5 right-5 bg-red-600 text-white p-3 rounded-lg shadow-lg z-50 max-w-xs text-xs">
+        <div className="fixed bottom-5 right-5 bg-red-600 text-white p-3 rounded-lg shadow-lg z-[999999] max-w-xs text-xs">
             <strong>Erro:</strong> {error}
         </div>
     );
@@ -85,7 +102,13 @@ const EmbedPage: React.FC = () => {
   return (
     <div className={`w-full h-screen bg-transparent ${!isChatOpen ? 'pointer-events-none' : ''}`}>
       {isChatOpen && <ChatWidget tenant={tenant} isEmbed={true} onClose={toggleChat} />}
-      {!isChatOpen && <FloatingChatButton tenant={tenant} isOpen={isChatOpen} onClick={toggleChat} />}
+      
+      {/* Botão flutuante sempre visível quando o chat está fechado */}
+      {!isChatOpen && (
+        <div className="pointer-events-auto z-[999999]">
+            <FloatingChatButton tenant={tenant} isOpen={isChatOpen} onClick={toggleChat} />
+        </div>
+      )}
     </div>
   );
 };
