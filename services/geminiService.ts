@@ -6,13 +6,22 @@ let ai: GoogleGenAI | null = null;
 
 const getAi = () => {
   if (!ai) {
-    if (!process.env.API_KEY) {
+    let apiKey = process.env.API_KEY;
+
+    if (!apiKey) {
         throw new Error("A chave de API não está configurada. Para que o aplicativo funcione fora do AI Studio, você deve definir a variável de ambiente `API_KEY` em sua plataforma de hospedagem (como Bolt, Vercel, etc.).");
     }
+
+    // Sanitize key: remove whitespace and surrounding quotes if present
+    apiKey = apiKey.trim();
+    if ((apiKey.startsWith('"') && apiKey.endsWith('"')) || (apiKey.startsWith("'") && apiKey.endsWith("'"))) {
+        apiKey = apiKey.substring(1, apiKey.length - 1);
+    }
+
     // Debug log to help verify key loading (showing only first few chars)
-    console.log(`Gemini API initialized with key: ${process.env.API_KEY.substring(0, 5)}...`);
+    console.log(`Gemini API initialized with key: ${apiKey.substring(0, 5)}...`);
     
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    ai = new GoogleGenAI({ apiKey: apiKey });
   }
   return ai;
 };
