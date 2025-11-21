@@ -4,18 +4,24 @@ import type { ChatMessage } from "../types";
 
 let ai: GoogleGenAI | null = null;
 
-// Chave de fallback para garantir que o app funcione se o .env não carregar
-const FALLBACK_KEY = "AIzaSyBcHPmBD28ifG9g5nXQOkH4tTX6u39CVO4";
+// LISTA DE CHAVES (FALLBACK)
+// Adicionei as duas chaves aqui. O sistema tentará usar a primeira se o .env falhar.
+const FALLBACK_KEYS = [
+    "AIzaSyDWCanj-H3ghy_oFhiq8-fwuWpR9iNXFD0", // Key 1 (Prioridade Atual)
+    "AIzaSyBcHPmBD28ifG9g5nXQOkH4tTX6u39CVO4"  // Key 2
+];
 
 const getAi = () => {
   if (!ai) {
     // Ordem de prioridade:
     // 1. Variável de ambiente do Vite (VITE_GEMINI_API_KEY)
     // 2. Variável de ambiente padrão (API_KEY)
-    // 3. Chave fixa (Fallback)
+    // 3. Primeira chave da lista de fallback
+    // 4. Segunda chave da lista de fallback
     let apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || 
                  process.env.API_KEY || 
-                 FALLBACK_KEY;
+                 FALLBACK_KEYS[0] || 
+                 FALLBACK_KEYS[1];
 
     if (!apiKey) {
         throw new Error("A chave de API não está configurada. Verifique seu arquivo .env e certifique-se de que VITE_GEMINI_API_KEY está definida.");
@@ -27,8 +33,8 @@ const getAi = () => {
         apiKey = apiKey.substring(1, apiKey.length - 1);
     }
 
-    // Debug log to help verify key loading (showing only first few chars)
-    console.log(`Gemini API initialized with key: ${apiKey.substring(0, 5)}...`);
+    // Debug log to help verify key loading (showing last few chars for security)
+    console.log(`Gemini API initialized with key ending in: ...${apiKey.slice(-4)}`);
     
     ai = new GoogleGenAI({ apiKey: apiKey });
   }
