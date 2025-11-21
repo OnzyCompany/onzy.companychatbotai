@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { XIcon } from './Icons';
 
@@ -13,14 +12,13 @@ export const EmbedCodeModal: React.FC<EmbedCodeModalProps> = ({ isOpen, onClose,
 
   if (!isOpen || !tenantId) return null;
 
-  // FIX: Make URL generation more robust by removing pathname dependency.
-  // This ensures the URL is always based on the root of the domain.
   const embedUrl = `${window.location.origin}/#/embed/${tenantId}`;
   
   const embedCode = `<iframe
   src="${embedUrl}"
-  style="position:fixed; bottom:20px; right:20px; width:min(90vw, 400px); height:min(80vh, 700px); border:none; border-radius:12px; z-index:9999; box-shadow: 0 10px 25px rgba(0,0,0,0.2);"
+  style="position:fixed; bottom:20px; right:20px; width:min(90vw, 400px); height:min(80vh, 700px); border:none; border-radius:12px; z-index:999999; background: transparent;"
   allow="clipboard-write; autoplay; microphone"
+  allowtransparency="true"
   title="Onzy AI Assistant">
 </iframe>`;
 
@@ -39,7 +37,7 @@ export const EmbedCodeModal: React.FC<EmbedCodeModalProps> = ({ isOpen, onClose,
         </button>
         <h2 className="text-2xl font-bold mb-4">Embed Onzy Assistant</h2>
         <p className="text-onzy-text-secondary mb-6">
-          Copie e cole este código no HTML do seu site, logo antes da tag de fechamento <code>&lt;/body&gt;</code>.
+          Copie e cole este código no HTML do seu site.
         </p>
         
         <div className="bg-onzy-gray rounded-lg p-4 relative">

@@ -1,7 +1,4 @@
-
-
 import React from 'react';
-// Fix: Changed react-router-dom import to use namespace import to resolve "no exported member" error.
 import * as ReactRouterDOM from 'react-router-dom';
 import AdminPanel from './pages/AdminPanel';
 import TenantPage from './pages/TenantPage';
@@ -12,8 +9,9 @@ const App: React.FC = () => {
     <ReactRouterDOM.HashRouter>
       <ReactRouterDOM.Routes>
         <ReactRouterDOM.Route path="/" element={<AdminPanel />} />
-        <ReactRouterDOM.Route path="/:tenantId" element={<TenantPage />} />
+        {/* A rota de embed deve ser definida explicitamente antes da rota dinâmica :tenantId */}
         <ReactRouterDOM.Route path="/embed/:tenantId" element={<EmbedPage />} />
+        <ReactRouterDOM.Route path="/:tenantId" element={<TenantPage />} />
       </ReactRouterDOM.Routes>
     </ReactRouterDOM.HashRouter>
   );

@@ -16,12 +16,24 @@ import {
 } from "firebase/firestore";
 import type { Tenant, Lead } from "../types";
 
+// Constantes de cor para migração automática
+const OLD_GREEN = '#00ffbb';
+const NEW_PURPLE = '#8b5cf6';
+
+// Helper para corrigir a cor de tenants antigos
+const migrateTenantColor = (tenant: Tenant): Tenant => {
+    if (tenant.themeColor === OLD_GREEN) {
+        return { ...tenant, themeColor: NEW_PURPLE };
+    }
+    return tenant;
+};
+
 // Mock Data for fallback when DB is not available or empty
 const MOCK_TENANTS: Tenant[] = [
     { 
         id: 'mock-1', 
         name: 'Onzy AI (Demo)', 
-        themeColor: '#8b5cf6', // Changed to Purple
+        themeColor: NEW_PURPLE, 
         systemPrompt: 'Você é o assistente virtual da Onzy AI. Seja útil, profissional e breve.', 
         whatsappNumber: '5511999998888', 
         collectionFields: ['nome', 'email'] 
@@ -62,7 +74,8 @@ export const getTenants = async (): Promise<Tenant[]> => {
           }
       });
       
-      return combined.length > 0 ? combined : MOCK_TENANTS;
+      // Aplica a migração de cor em todos os tenants recuperados
+      return combined.length > 0 ? combined.map(migrateTenantColor) : MOCK_TENANTS;
   } catch (error) {
       console.error("Error fetching tenants, falling back to mock:", error);
       return MOCK_TENANTS;
@@ -78,7 +91,8 @@ export const getTenantById = async (id: string): Promise<Tenant | null> => {
         const tenantRef = doc(db, 'tenants', id);
         const snapshot = await getDoc(tenantRef);
         if (snapshot.exists()) {
-            return { id: snapshot.id, ...snapshot.data() } as Tenant;
+            const tenantData = { id: snapshot.id, ...snapshot.data() } as Tenant;
+            return migrateTenantColor(tenantData);
         }
     } catch (error) {
         console.error("Error fetching tenant from DB:", error);
@@ -88,7 +102,7 @@ export const getTenantById = async (id: string): Promise<Tenant | null> => {
   // Fallback: Check if it matches a Mock ID
   // This ensures that even if DB is connected but empty, the Mock ID works.
   const mockTenant = MOCK_TENANTS.find(t => t.id === id);
-  return mockTenant || null;
+  return mockTenant ? migrateTenantColor(mockTenant) : null;
 };
 
 export const addTenant = async (tenantData: Omit<Tenant, 'id'>): Promise<string> => {
